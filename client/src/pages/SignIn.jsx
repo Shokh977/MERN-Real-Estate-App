@@ -40,6 +40,7 @@ export default function SignIn() {
         dispatch(signInFailure(data.message));
         return;
       }
+      // this 'data' is payload that is sent to dispatch 
       dispatch(signInSuccess(data));
       navigate("/");
     } catch (error) {

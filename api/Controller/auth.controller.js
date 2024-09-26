@@ -4,6 +4,7 @@ const { errorHandler } = require("../Utils/error");
 const jwt = require("jsonwebtoken");
 
 exports.signup = async (req, res, next) => {
+  // this data comes from client side post request
   const { username, email, password } = req.body;
   const hashedPassword = bcryptjs.hashSync(password, 10);
   const newUser = new User({
