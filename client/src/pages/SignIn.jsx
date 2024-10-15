@@ -18,7 +18,6 @@ export default function SignIn() {
   const handleChange = (e) => {
     setForm({
       ...form,
-      //ex: The e.target.id is "email", and e.target.value will be whatever the user typed in that field.
       [e.target.id]: e.target.value,
     });
   };
@@ -40,7 +39,6 @@ export default function SignIn() {
         dispatch(signInFailure(data.message));
         return;
       }
-      // this 'data' is payload that is sent to dispatch 
       dispatch(signInSuccess(data));
       navigate("/");
     } catch (error) {
@@ -49,38 +47,47 @@ export default function SignIn() {
   };
 
   return (
-    <div className="p-3 max-w-lg mx-auto">
-      <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="email"
-          placeholder="email"
-          className="border p-3 rounded-lg"
-          id="email"
-          onChange={handleChange}
-        />
-        <input
-          type="password"
-          placeholder="password"
-          className="border p-3 rounded-lg"
-          id="password"
-          onChange={handleChange}
-        />
-        <button
-          disabled={loading}
-          className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
-          {loading ? "Loading..." : "Sign In"}
-        </button>
-        <OAuth/>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white shadow-md rounded-lg p-6 max-w-md w-full">
+        <h1 className="text-2xl font-bold text-center mb-6">Sign In</h1>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <input
+            type="email"
+            placeholder="Email"
+            className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="email"
+            onChange={handleChange}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="password"
+            onChange={handleChange}
+          />
+          <button
+            disabled={loading}
+            className="bg-blue-600 text-white p-3 rounded-lg uppercase font-semibold hover:bg-blue-700 disabled:opacity-50 transition-all">
+            {loading ? "Signing In..." : "Sign In"}
+          </button>
+          <OAuth />
+        </form>
 
-      </form>
-      <div className="flex gap-2 mt-5">
-        <p>Do Not Have an Account?</p>
-        <Link to={"/sign-up"}>
-          <span className="text-blue-700">Sign Up</span>
-        </Link>
+        <div className="text-center mt-6">
+          <p className="text-gray-600">
+            Don't have an account?{" "}
+            <Link to="/sign-up" className="text-blue-600 font-semibold hover:underline">
+              Sign Up
+            </Link>
+          </p>
+        </div>
+
+        {error && (
+          <p className="text-red-600 text-center mt-4 bg-red-100 p-2 rounded-lg">
+            {error}
+          </p>
+        )}
       </div>
-      {error && <p className="text-red-700 mt-5">{error}</p>}
     </div>
   );
 }
