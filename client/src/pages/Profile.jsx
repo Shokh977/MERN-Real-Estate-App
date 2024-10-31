@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { app } from "../firebase";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   getDownloadURL,
   getStorage,
@@ -199,6 +199,10 @@ const handleSignOut = async () => {
         >
           {loading ? "Loading..." : "Update"}
         </button>
+        <Link className="bg-green-600 text-white text-lg font-semi-bold text-center p-3 rounded-lg hover:opacity-90 transition duration-300" to = '/create-listing'>
+        Create Listing
+        </Link>
+
       </form>
       <div className="flex justify-between mt-5">
         <span
