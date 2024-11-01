@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from "firebase/storage";
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
 import { app } from "../firebase";
 import { FiLoader } from "react-icons/fi";
-
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const CreateListing = () => {
+  const currentUser = useSelector((state) => state.user.user.currentUser);
+  console.log(currentUser, 'user from listing')
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -18,10 +26,14 @@ const CreateListing = () => {
     parking: false,
     type: "rent",
     offer: false,
-    imageUrls: []
+    imageUrls: [],
   });
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+     const navigate = useNavigate()
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -69,15 +81,46 @@ const CreateListing = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.imageUrls.length === 0) {
       alert("Please upload at least one image.");
       return;
     }
 
-    // Code to save formData to MongoDB
-    console.log("Listing data:", formData);
+    try {
+      if(+formData.regularPrice < +formData.discountPrice) return setError('Discount price must be lower than regular price')
+      setLoading(true);
+      setError(false);
+      const res = await fetch("/api/listing/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          userRef: currentUser._id
+        }),
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (data.success === false) {
+        setError(error.message);
+        setLoading(false);
+      }
+      console.log(data, 'data')
+      navigate(`/listing/${data._id}`)
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
+  const handleRemove = (index) => {
+    setFormData({
+      ...formData,
+      imageUrls: formData.imageUrls.filter((_, i) => i !== index),
+    });
   };
 
   return (
@@ -86,15 +129,13 @@ const CreateListing = () => {
         className="w-full max-w-5xl p-8 bg-white rounded-lg shadow-md"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+        transition={{ duration: 0.6 }}>
         <h2 className="text-3xl font-semibold text-gray-800 mb-8 text-center">
           Create a Listing
         </h2>
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
+          className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <input
             type="text"
             name="name"
@@ -131,7 +172,17 @@ const CreateListing = () => {
             required
             className="w-full px-4 py-3 border border-gray-300 rounded-md"
           />
-          <input
+           <div className="flex items-center space-x-3">
+            <label className="text-gray-800">Special Offer</label>
+            <input
+              type="checkbox"
+              name="offer"
+              checked={formData.offer}
+              onChange={handleChange}
+              className="form-checkbox text-green-700"
+            />
+          </div>
+          {formData.offer && (  <input
             type="number"
             name="discountPrice"
             placeholder="Discount Price"
@@ -139,7 +190,8 @@ const CreateListing = () => {
             onChange={handleChange}
             required
             className="w-full px-4 py-3 border border-gray-300 rounded-md"
-          />
+          />)}
+        
 
           <div className="flex flex-col">
             <label className="text-gray-800 mb-1">Bedrooms</label>
@@ -189,21 +241,11 @@ const CreateListing = () => {
             value={formData.type}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-md"
-          >
+            className="w-full px-4 py-3 border border-gray-300 rounded-md">
             <option value="rent">Rent</option>
             <option value="sale">Sale</option>
           </select>
-          <div className="flex items-center space-x-3">
-            <label className="text-gray-800">Special Offer</label>
-            <input
-              type="checkbox"
-              name="offer"
-              checked={formData.offer}
-              onChange={handleChange}
-              className="form-checkbox text-green-700"
-            />
-          </div>
+         
 
           <div className="space-y-2 md:col-span-2">
             <label className="text-gray-800">Upload Images</label>
@@ -216,26 +258,44 @@ const CreateListing = () => {
             {uploading && (
               <p className="text-green-600 mt-2">Uploading image(s)...</p>
             )}
-            <div className="grid md:grid-cols-4 grid-cols-2 gap-2 py-2">
-                {formData.imageUrls.length > 0 && formData.imageUrls.map(url => (
-                <img src={url} alt="listing images"  className="w-40 h-40 object-cover rounded-lg"/>
-            ))}
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-2 py-2">
+              {formData.imageUrls.length > 0 &&
+                formData.imageUrls.map((url, index) => (
+                  <div
+                    key={url}
+                    className="flex justify-between p-3 border items-center">
+                    <img
+                      src={url}
+                      alt="listing images"
+                      className="w-40 h-40 object-contain rounded-lg"
+                    />
+                    <button
+                      onClick={() => handleRemove(index)}
+                      className="text-red-700 uppercase hover:opacity-70 p-3">
+                      Delete
+                    </button>
+                  </div>
+                ))}
             </div>
-            
+
             <button
               onClick={handleImageSubmit}
               className="disabled:opacity-70 text-green-700 border border-green-700 w-20 h-12 text-center rounded-md text-lg font-semibold"
-              type="button"
-            >
-             {uploading? <FiLoader className='animate-spin mx-auto'/> : "Upload"}
+              type="button">
+              {uploading ? (
+                <FiLoader className="animate-spin mx-auto" />
+              ) : (
+                "Upload"
+              )}
             </button>
           </div>
           <button
+          disabled={loading || uploading}
             type="submit"
-            className="w-full md:col-span-2 px-6 py-3 mt-4 bg-green-700 text-white rounded-md hover:bg-green-600 transition-all duration-300"
-          >
-            Submit Listing
+            className="w-full md:col-span-2 px-6 py-3 mt-4 bg-green-700 text-white rounded-md hover:bg-green-600 transition-all duration-300">
+            {loading ? "Creating" : "Create"}
           </button>
+          {error && <p className="text-red-700 text-sm p-3">{error}</p>}
         </form>
       </motion.div>
     </div>
