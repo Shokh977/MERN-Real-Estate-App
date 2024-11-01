@@ -8,6 +8,8 @@ const router = express.Router();
 router.get("/test", controller.test);
 router.post("/update/:id", verifyToken, controller.updateUser);
 router.delete("/delete/:id", verifyToken, controller.deleteUser);
+router.get("/listing/:id", verifyToken, controller.getUserListings);
+
 
 
 

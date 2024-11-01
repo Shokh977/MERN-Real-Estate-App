@@ -1,3 +1,4 @@
+const Listing = require("../Models/listing.module");
 const User = require("../Models/User.module");
 const { errorHandler } = require("../Utils/error");
 const bcryptjs = require("bcryptjs");
@@ -54,3 +55,19 @@ exports.deleteUser = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getUserListings = async (req, res, next) => {
+  // here user id should be equel to the id in the url(endpoind) 
+  if(req.user.id === req.params.id){
+     try {
+      // here userRef stores the reference to the user by its id so this function help to 
+      // find all listings created one specific user
+      const listings = await Listing.find({userRef: req.params.id})
+      res.status(200).json(listings)
+     } catch (error) {
+      
+     }
+  }else{
+    return next(errorHandler(401, 'You can only view your own listings!'))
+  }
+}
