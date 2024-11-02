@@ -1,11 +1,11 @@
 const express = require("express");
 
-const { createListing } =  require ("../Controller/listing.controller.js");
-const { verifyToken } = require( "../Utils/verifyUser.js");
+const { createListing, deleteListing } = require("../Controller/listing.controller.js");
+const { verifyToken } = require("../Utils/verifyUser.js");
 
 const router = express.Router();
 
-
-router.post('/create', verifyToken, createListing)
+router.post("/create", verifyToken, createListing);
+router.delete("/delete/:id", verifyToken, deleteListing);
 
 module.exports = router;
