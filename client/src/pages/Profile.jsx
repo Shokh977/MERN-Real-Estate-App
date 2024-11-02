@@ -33,6 +33,8 @@ export default function Profile() {
   const [file, setFile] = useState(undefined);
   const [uploadPer, setUploadPer] = useState(0);
   const [fileError, setFileError] = useState(false);
+  const [showListError, setShowListError] = useState(false);
+  const [userListings, setUserListings] = useState([]);
 
   const [formData, setFormData] = useState({
     avatar,
@@ -56,7 +58,8 @@ export default function Profile() {
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setUploadPer(Math.round(progress));
       },
       (error) => {
@@ -95,7 +98,7 @@ export default function Profile() {
         dispatch(updateUserFailure(data.message));
         return;
       }
-      dispatch(updateUserSuccess(data))
+      dispatch(updateUserSuccess(data));
       navigate("/");
     } catch (error) {
       dispatch(updateUserFailure(error.message));
@@ -103,41 +106,59 @@ export default function Profile() {
   };
 
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-        try {
-            dispatch(deleteUserStart());
-            const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-                method: "DELETE",
-            });
-            const data = await res.json();
-            if (!data.success) {
-                dispatch(deleteUserFailure(data.message));
-                return;
-            }
-            dispatch(deleteUserSuccess(data));
-            navigate("/sign-up"); // Redirect after successful deletion
-        } catch (error) {
-            dispatch(deleteUserFailure(error.message));
-        }
-    }
-};
-
-const handleSignOut = async () => {
-    try {
-        dispatch(signoutUserStart());
-        const res = await fetch("/api/auth/signout");
+    if (
+      window.confirm(
+        "Are you sure you want to delete your account? This action cannot be undone."
+      )
+    ) {
+      try {
+        dispatch(deleteUserStart());
+        const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+          method: "DELETE",
+        });
         const data = await res.json();
         if (!data.success) {
-            dispatch(signoutUserFailure(data.message));
-            return;
+          dispatch(deleteUserFailure(data.message));
+          return;
         }
-        dispatch(signoutUserSuccess(data))
-        navigate("/sign-in"); 
-    } catch (error) {
-        dispatch(signoutUserFailure(error.message));
+        dispatch(deleteUserSuccess(data));
+        navigate("/sign-up"); // Redirect after successful deletion
+      } catch (error) {
+        dispatch(deleteUserFailure(error.message));
+      }
     }
-};
+  };
 
+  const handleSignOut = async () => {
+    try {
+      dispatch(signoutUserStart());
+      const res = await fetch("/api/auth/signout");
+      const data = await res.json();
+      if (!data.success) {
+        dispatch(signoutUserFailure(data.message));
+        return;
+      }
+      dispatch(signoutUserSuccess(data));
+      navigate("/sign-in");
+    } catch (error) {
+      dispatch(signoutUserFailure(error.message));
+    }
+  };
+
+  const handleShowListing = async () => {
+    try {
+      const res = await fetch(`/api/user/listing/${currentUser._id}`);
+      const data = await res.json();
+      if (data.success === false) {
+        setShowListError(true);
+        console.log("clicked");
+        return;
+      }
+      setUserListings(data);
+    } catch (error) {
+      showListError(true);
+    }
+  };
 
   return (
     <div className="p-5 max-w-lg mx-auto bg-white rounded-lg shadow-md my-7">
@@ -195,34 +216,62 @@ const handleSignOut = async () => {
         />
         <button
           disabled={loading}
-          className="bg-blue-600 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-70 transition duration-300"
-        >
+          className="bg-blue-600 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-70 transition duration-300">
           {loading ? "Loading..." : "Update"}
         </button>
-        <Link className="bg-green-600 text-white text-lg font-semi-bold text-center p-3 rounded-lg hover:opacity-90 transition duration-300" to = '/create-listing'>
-        Create Listing
+        <Link
+          className="bg-green-600 text-white text-lg font-semi-bold text-center p-3 rounded-lg hover:opacity-90 transition duration-300"
+          to="/create-listing">
+          Create Listing
         </Link>
-
       </form>
+      <button
+        onClick={handleShowListing}
+        className="bg-green-600 my-3 w-full text-white text-lg font-semi-bold text-center p-3 rounded-lg hover:opacity-90 transition duration-300">
+        Listings
+      </button>
+      <p className="text-green-500 mt-5 ">
+        {showListError ? "Error showing listing" : ""}
+      </p>
+
       <div className="flex justify-between mt-5">
         <span
           className="text-red-600 cursor-pointer hover:underline"
-          onClick={handleDelete}
-        >
+          onClick={handleDelete}>
           Delete Account
         </span>
         <span
           onClick={handleSignOut}
-          className="text-red-600 cursor-pointer hover:underline"
-        >
+          className="text-red-600 cursor-pointer hover:underline">
           Sign Out
         </span>
       </div>
+
       {error && (
         <div className="bg-red-900 bg-opacity-50 p-3 m-2 rounded-lg text-white">
           <p>{error}</p>
         </div>
       )}
+      <div className="my-8">
+        <h1 className="text-xl font-bold text-green-500 text-center">Your listing</h1>
+      {userListings &&
+        userListings.length > 0 &&
+        userListings.map((listing) => <div className="flex items-center justify-between mx-4 border px-4 m-4 gap-2"
+         key={listing._id}>
+           <Link to={`/listing/${listing._id}`}>
+           <img className="w-40 h-40 object-contain rounded-lg " src={listing.imageUrls[0]} alt="listing cover image" />
+           </Link>
+           <Link tp={`/listing/${listing._id}`} className="flex-1">
+           <p className="text-late-700 font-semibold  hover:underline truncate">{listing.name}</p>
+           </Link>
+           <div className="flex flex-col">
+               <button className="uppercase text-red-700">Delete</button>
+               <button className="uppercase text-green-700">Edit</button>
+
+           </div>
+        </div>)}
+      </div>
+      
     </div>
   );
 }

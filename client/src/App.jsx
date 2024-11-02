@@ -8,6 +8,7 @@ import About from "./pages/About";
 import Header from "./components/Header";
 import PrivateRouter from "./components/PrivateRouter";
 import CreateListing from "./pages/CreateListing";
+// import Dashboard from "./pages/profile/Dashboard";
 
 export default function App() {
   return (
