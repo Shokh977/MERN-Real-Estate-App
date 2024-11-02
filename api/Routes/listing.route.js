@@ -1,6 +1,6 @@
 const express = require("express");
 
-const { createListing, deleteListing } = require("../Controller/listing.controller.js");
+const { createListing, deleteListing, updateListing } = require("../Controller/listing.controller.js");
 const { verifyToken } = require("../Utils/verifyUser.js");
 
 const router = express.Router();
