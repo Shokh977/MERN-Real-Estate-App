@@ -33,7 +33,11 @@ exports.signin = async (req, res, next) => {
     const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
     const { password: pass, ...rest } = validUser._doc;
     res
-      .cookie("access_token", token, { httpOnly: true, secure: true, sameSite: 'strict' })
+      .cookie("access_token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      })
       .status(200)
       .json(rest);
   } catch (err) {
@@ -48,7 +52,11 @@ exports.google = async (req, res, next) => {
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
       const { password: pass, ...rest } = user._doc;
       res
-        .cookie("access_token", token, { httpOnly: true, secure: true, sameSite: 'strict' })
+        .cookie("access_token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "strict",
+        })
         .status(200)
         .json(rest);
     } else {
@@ -68,7 +76,11 @@ exports.google = async (req, res, next) => {
       const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
       const { password: pass, ...rest } = newUser._doc;
       res
-        .cookie("access_token", token, { httpOnly: true, secure: true, sameSite: 'strict' })
+        .cookie("access_token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "strict",
+        })
         .status(200)
         .json(rest);
     }
@@ -85,3 +97,5 @@ exports.signout = async (req, res, next) => {
     next(error);
   }
 };
+
+
