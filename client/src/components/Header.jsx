@@ -1,11 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 export default function Header() {
   const currentUser = useSelector((state) => state.user.user.currentUser);
-  console.log(currentUser, 'user from nav')
+  console.log(currentUser, "user from nav");
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate()
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set("searchTerm", searchTerm);
+    const searchQuery = urlParams.toString();
+    navigate(`/search?${searchQuery}`);
+  };
+
+  useEffect(()=>{
+    const urlParams = new URLSearchParams(location.search)
+    const searchTermFromUrl = urlParams.get('searchTerm')
+    if(searchTermFromUrl){
+      setSearchTerm(searchTermFromUrl)
+    }
+  }, [location.search])
 
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
@@ -19,13 +37,19 @@ export default function Header() {
         </Link>
 
         {/* Search bar */}
-        <form className="bg-gray-100 p-2 rounded-full flex items-center w-full max-w-md shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-gray-100 p-2 rounded-full flex items-center w-full max-w-md shadow-sm">
           <input
             type="text"
             placeholder="Search properties, locations..."
             className="bg-transparent focus:outline-none w-full px-4 text-gray-700"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <IoSearchOutline className="text-blue-700" size={25} />
+          <button>
+            <IoSearchOutline className="text-blue-700" size={25} />
+          </button>
         </form>
 
         <ul className="flex items-center gap-8">
