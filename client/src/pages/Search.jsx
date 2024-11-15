@@ -1,6 +1,8 @@
+import { p } from "framer-motion/client";
 import React, { useEffect, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
+import Card from "../components/Card";
 
 export default function Search() {
   const [sideBarData, setSidebarData] = useState({
@@ -14,6 +16,7 @@ export default function Search() {
   });
   const [loading, setLoading] = useState(false);
   const [listing, setListing] = useState([]);
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
@@ -38,24 +41,33 @@ export default function Search() {
       sortFromUrl ||
       orderFromUrl
     ) {
+      const normalizeBoolean = (value) => (value === "true" ? true : false);
+
       setSidebarData({
         searchTerm: searchTermFromUrl || "",
-        type: typeFromUrl || "",
-        parking: parkingFromUrl || "",
-        furnished: furnishedFromUrl || "",
-        offer: offerFromUrl || "",
-        sort: sortFromUrl || "",
-        order: orderFromUrl || "",
+        type: typeFromUrl || "all",
+        parking: normalizeBoolean(parkingFromUrl),
+        furnished: normalizeBoolean(furnishedFromUrl),
+        offer: normalizeBoolean(offerFromUrl),
+        sort: sortFromUrl || "created_at",
+        order: orderFromUrl || "desc",
       });
     }
 
     const fetchListing = async () => {
-      setLoading(true);
-      const searchQuery = urlParams.toString();
-      const res = await fetch(`/api/listing/get?${searchQuery}`);
-      const data = await res.json();
-      setListing(data);
-      setLoading(false);
+      try {
+        setLoading(true);
+        setError(null);
+        const searchQuery = urlParams.toString();
+        const res = await fetch(`/api/listing/get?${searchQuery}`);
+        if (!res.ok) throw new Error("Failed to fetch listings");
+        const data = await res.json();
+        setListing(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchListing();
   }, [location.search]);
@@ -197,17 +209,28 @@ export default function Search() {
             </select>
           </div>
 
-          <button
-            type="button"
-            className="bg-slate-600 p-3 rounded-lg text-white font-semibold">
+          <button className="bg-slate-600 p-3 rounded-lg text-white font-semibold">
             Apply Filter
           </button>
         </form>
       </div>
-      <div>
+      <div className="flex-1">
         <h1 className="text-2xl font-semibold border-b p-3 text-slate-700 mt-5">
-          Results:
+          Results: {listing.length}
         </h1>
+        <div className="grid xl:grid-cols-3 md:grid-cols-1  gap-4 justify-center p-7 items-center ">
+          {!loading && listing.length === 0 && (
+            <p className="text-xl text-slate-700">No Items Found</p>
+          )}
+          {loading && (
+            <p className="text-xl text-slate-700 text-center w-full">
+              Loading...
+            </p>
+          )}
+          {!loading &&
+            listing &&
+            listing.map((item) => <Card key={item._id} item={item} />)}
+        </div>
       </div>
     </div>
   );
