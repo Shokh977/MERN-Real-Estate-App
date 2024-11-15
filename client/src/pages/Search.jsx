@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import Card from "../components/Card";
+import { FaArrowDown, FaArrowDownAZ, FaArrowDownLong } from "react-icons/fa6";
 
 export default function Search() {
   const [sideBarData, setSidebarData] = useState({
@@ -16,6 +17,7 @@ export default function Search() {
   });
   const [loading, setLoading] = useState(false);
   const [listing, setListing] = useState([]);
+  const [showMore, setShowMore] = useState(false);
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
@@ -62,6 +64,9 @@ export default function Search() {
         const res = await fetch(`/api/listing/get?${searchQuery}`);
         if (!res.ok) throw new Error("Failed to fetch listings");
         const data = await res.json();
+        if (data.length > 8) {
+          setShowMore(true);
+        }else{setShowMore(false)}
         setListing(data);
       } catch (err) {
         setError(err.message);
@@ -106,7 +111,19 @@ export default function Search() {
     const searchQuery = urlParams.toString();
     navigate(`/search?${searchQuery}`);
   };
-
+  const onShowMoreClick = async () => {
+    const numberOfListings = listing.length;
+    const startIndex = numberOfListings;
+    const urlParams = new URLSearchParams(location.search);
+    urlParams.set("startIndex", startIndex);
+    const searchQuery = urlParams.toString();
+    const res = await fetch(`/api/listing/get?${searchQuery}`);
+    const data = await res.json();
+    if (data.length < 9) {
+      setShowMore(false);
+    }
+    setListing([...listing, ...data]);
+  };
   return (
     <div className="flex flex-col md:flex-row">
       <div className="p-7 border-b-2 md:border-r-2 md:min-h-screen">
@@ -218,7 +235,7 @@ export default function Search() {
         <h1 className="text-2xl font-semibold border-b p-3 text-slate-700 mt-5">
           Results: {listing.length}
         </h1>
-        <div className="grid xl:grid-cols-3 md:grid-cols-1  gap-4 justify-center p-7 items-center ">
+        <div className="w-full grid xl:grid-cols-3 md:grid-cols-1  gap-4 justify-center p-7 items-center">
           {!loading && listing.length === 0 && (
             <p className="text-xl text-slate-700">No Items Found</p>
           )}
@@ -230,6 +247,14 @@ export default function Search() {
           {!loading &&
             listing &&
             listing.map((item) => <Card key={item._id} item={item} />)}
+          {showMore && (
+            <button
+              onClick={onShowMoreClick}
+              className="flex items-center justify-center gap-2 text-green-500 border p-3 border-green-500 font-semibold rounded hover:bg-green-500 hover:text-white transition-all duration-300">
+              Show More{" "}
+              <FaArrowDown className="hover:mt-2 transition-mt duration-300" />
+            </button>
+          )}
         </div>
       </div>
     </div>
