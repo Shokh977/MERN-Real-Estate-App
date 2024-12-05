@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { IoSearchOutline, IoMenu, IoClose } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useAuthStore } from "../Store/useAuthStore";
+import { FaSpinner } from "react-icons/fa6";
 
 export default function Header() {
-  const currentUser = useSelector((state) => state.user.user.currentUser);
+  const { user, isAuthenticated, isCheckingAuth } = useAuthStore();
+  console.log(JSON.stringify(user), isAuthenticated, "user in the auth");
   const [searchTerm, setSearchTerm] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -28,7 +30,9 @@ export default function Header() {
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
       <div className="flex justify-between items-center max-w-7xl mx-auto py-4 px-6">
-        <Link to="/" className="text-2xl font-semibold text-blue-900 tracking-wide flex items-center">
+        <Link
+          to="/"
+          className="text-2xl font-semibold text-blue-900 tracking-wide flex items-center">
           <span className="text-green-500">Real</span>
           <span className="ml-1 text-gray-800">Estate</span>
         </Link>
@@ -39,19 +43,19 @@ export default function Header() {
           {menuOpen ? <IoClose /> : <IoMenu />}
         </button>
         <form
-        onSubmit={handleSubmit}
-        className=" hidden bg-gray-100 p-2 rounded-full md:flex items-center w-full max-w-md mx-auto my-2 md:my-0 md:shadow-sm">
-        <input
-          type="text"
-          placeholder="Search properties, locations..."
-          className="bg-transparent focus:outline-none w-full px-4 text-gray-700"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <button>
-          <IoSearchOutline className="text-blue-700" size={25} />
-        </button>
-      </form>
+          onSubmit={handleSubmit}
+          className=" hidden bg-gray-100 p-2 rounded-full md:flex items-center w-full max-w-md mx-auto my-2 md:my-0 md:shadow-sm">
+          <input
+            type="text"
+            placeholder="Search properties, locations..."
+            className="bg-transparent focus:outline-none w-full px-4 text-gray-700"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button>
+            <IoSearchOutline className="text-blue-700" size={25} />
+          </button>
+        </form>
         <ul className="hidden md:flex items-center gap-8">
           <Link to="/">
             <li className="text-gray-700 hover:text-blue-700 transition font-medium text-lg cursor-pointer">
@@ -65,10 +69,12 @@ export default function Header() {
           </Link>
 
           <Link to="/profile">
-            {currentUser ? (
+            {isCheckingAuth ? (
+              <FaSpinner className="spinner" />
+            ) : isAuthenticated && user ? (
               <img
                 className="rounded-full h-9 w-9 object-cover shadow-md border-2 border-blue-700"
-                src={currentUser.avatar}
+                src={user.avatar}
                 alt="profile"
               />
             ) : (
@@ -83,20 +89,20 @@ export default function Header() {
       {menuOpen && (
         <ul className="flex flex-col items-center gap-6 bg-white py-4 shadow-md md:hidden">
           <li>
-          <form
-        onSubmit={handleSubmit}
-        className=" md:hidden bg-gray-100 p-2 rounded-full flex items-center w-full max-w-md mx-auto my-2 md:my-0 md:shadow-sm">
-        <input
-          type="text"
-          placeholder="Search properties, locations..."
-          className="bg-transparent focus:outline-none w-full px-4 text-gray-700"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <button>
-          <IoSearchOutline className="text-blue-700" size={25} />
-        </button>
-      </form>
+            <form
+              onSubmit={handleSubmit}
+              className=" md:hidden bg-gray-100 p-2 rounded-full flex items-center w-full max-w-md mx-auto my-2 md:my-0 md:shadow-sm">
+              <input
+                type="text"
+                placeholder="Search properties, locations..."
+                className="bg-transparent focus:outline-none w-full px-4 text-gray-700"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button>
+                <IoSearchOutline className="text-blue-700" size={25} />
+              </button>
+            </form>
           </li>
           <Link to="/">
             <li
@@ -114,10 +120,10 @@ export default function Header() {
           </Link>
 
           <Link to="/profile">
-            {currentUser ? (
+            {isAuthenticated && user ? (
               <img
                 className="rounded-full h-9 w-9 object-cover shadow-md border-2 border-blue-700"
-                src={currentUser.avatar}
+                src={user.avatar}
                 alt="profile"
                 onClick={() => setMenuOpen(false)}
               />
@@ -131,7 +137,6 @@ export default function Header() {
           </Link>
         </ul>
       )}
-
     </header>
   );
 }

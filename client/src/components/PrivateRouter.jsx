@@ -1,11 +1,28 @@
-import React from "react";
-import { useSelector } from "react-redux";
-import { Outlet, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuthStore } from "../Store/useAuthStore";
+import { FaSpinner } from "react-icons/fa6";
 
-export default function PrivateRouter() {
-  // Access currentUser from the Redux store
-  const currentUser = useSelector((state) => state.user.user.currentUser);
-  
-  // If currentUser exists, render the Outlet; otherwise, navigate to the sign-in page
-  return currentUser ? <Outlet /> : <Navigate to="/sign-in" />;
-}
+const PrivateRouter = ({ children }) => {
+  const { user, loading, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth(); 
+  }, [checkAuth]);
+
+  if (loading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <FaSpinner className="mx-auto text-4xl animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/sign-in" replace />;
+  }
+
+  return children;
+};
+
+export default PrivateRouter;

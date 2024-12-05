@@ -1,19 +1,13 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  signInStart,
-  signInSuccess,
-  signInFailure,
-} from "../Redux/user/userSlice";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../Store/useAuthStore";
 import OAuth from "../components/OAuth";
 
 export default function SignIn() {
   const [form, setForm] = useState({});
-  const { loading, error } = useSelector((state) => state.user);
+  const { signin, loading, error } = useAuthStore();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  console.log(form, "form");
 
   const handleChange = (e) => {
     setForm({
@@ -24,26 +18,8 @@ export default function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      dispatch(signInStart());
-      const res = await fetch("/api/auth/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-
-      if (data.success === false) {
-        dispatch(signInFailure(data.message));
-        return;
-      }
-      dispatch(signInSuccess(data));
+    await signin(form);
       navigate("/");
-    } catch (error) {
-      dispatch(signInFailure(error.message));
-    }
   };
 
   return (
@@ -76,7 +52,9 @@ export default function SignIn() {
         <div className="text-center mt-6">
           <p className="text-gray-600">
             Don't have an account?{" "}
-            <Link to="/sign-up" className="text-blue-600 font-semibold hover:underline">
+            <Link
+              to="/sign-up"
+              className="text-blue-600 font-semibold hover:underline">
               Sign Up
             </Link>
           </p>

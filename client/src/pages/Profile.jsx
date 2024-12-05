@@ -3,6 +3,8 @@ import Listings from "./profile/sideLinks/Listings";
 import ProfileForm from "./profile/ProfileForm";
 import Sidebar from "./profile/sideLinks/Sidebar";
 import { useNavigate } from "react-router-dom";
+import SignOut from "./profile/sideLinks/SignOut";
+import DeleteProfile from "./profile/sideLinks/DeleteProfile";
 
 export default function Profile() {
   const [menu, setMenu] = useState("listings");
@@ -21,9 +23,9 @@ export default function Profile() {
       case "profile":
         return <ProfileForm />;
       case "signout":
-        return <div>Signout Section</div>;
+        return <SignOut/>;
       case "delete":
-        return <div>Delete Account Section</div>;
+        return <DeleteProfile/>;
       default:
         return <div>Invalid menu option</div>;
     }

@@ -8,12 +8,11 @@ import {
 } from "firebase/storage";
 import { app } from "../firebase";
 import { FiLoader } from "react-icons/fi";
-import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-
+import { useAuthStore } from "../Store/useAuthStore";
 const UpdateListing = () => {
-  const currentUser = useSelector((state) => state.user.user.currentUser);
-  console.log(currentUser, "user from listing");
+  const { user } = useAuthStore();
+  console.log(user, "user from listingUpdated");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -114,7 +113,7 @@ const UpdateListing = () => {
         },
         body: JSON.stringify({
           ...formData,
-          userRef: currentUser._id,
+          userRef: user.user,
         }),
       });
       const data = await res.json();

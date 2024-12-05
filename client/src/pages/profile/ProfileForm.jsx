@@ -1,30 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import {app} from '../../firebase'
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import {
-  updateUserStart,
-  updateUserSuccess,
-  updateUserFailure,
-  deleteUserFailure,
-  deleteUserSuccess,
-  deleteUserStart,
-  signoutUserStart,
-  signoutUserFailure,
-  signoutUserSuccess,
-} from "../../Redux/user/userSlice";
+import { app } from "../../firebase";
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from "firebase/storage";
+// import { useUserStore } from './../../Store/useUserStore';
+import { useAuthStore } from "../../Store/useAuthStore";
 
 export default function ProfileForm() {
   const fileRef = useRef(null);
-  const dispatch = useDispatch();
-  const currentUser = useSelector((state) => state.user.user.currentUser);
-  const loading = useSelector((state) => state.user.user.loading);
+  const { user, loading , updateUser} = useAuthStore();
+
+  console.log(user._id, 'id from update')
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     avatar: "https://via.placeholder.com/150",
@@ -32,13 +17,21 @@ export default function ProfileForm() {
     email: "",
     password: "",
   });
-  
+
   const [file, setFile] = useState(undefined);
   const [uploadPer, setUploadPer] = useState(0);
   const [fileError, setFileError] = useState(false);
-  const [showListError, setShowListError] = useState(false);
-  const [userListings, setUserListings] = useState([]);
 
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        avatar: user.avatar || formData.avatar,
+        username: user.username || "",
+        email: user.email || "",
+        password: "",
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     if (file) {
@@ -55,8 +48,7 @@ export default function ProfileForm() {
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setUploadPer(Math.round(progress));
       },
       (error) => {
@@ -82,28 +74,15 @@ export default function ProfileForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      useDispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        dispatch(updateUserFailure(data.message));
-        return;
-      }
-      dispatch(updateUserSuccess(data));
+      await updateUser(user._id, formData);
       navigate("/");
     } catch (error) {
-      dispatch(updateUserFailure(error.message));
+      console.error("Update failed:", error);
     }
   };
+
   return (
     <div>
-      {" "}
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <input
           onChange={(e) => setFile(e.target.files[0])}
@@ -116,7 +95,7 @@ export default function ProfileForm() {
         <div className="flex justify-center">
           <img
             onClick={() => fileRef.current.click()}
-            src={formData.avatar || avatar}
+            src={formData.avatar || user?.avatar || "https://via.placeholder.com/150"}
             alt="Profile Avatar"
             className="rounded-full h-28 w-28 object-cover cursor-pointer border-2 border-gray-300 transition duration-300 ease-in-out transform hover:scale-105"
           />
@@ -157,12 +136,14 @@ export default function ProfileForm() {
         />
         <button
           disabled={loading}
-          className="bg-blue-600 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-70 transition duration-300">
+          className="bg-blue-600 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-70 transition duration-300"
+        >
           {loading ? "Loading..." : "Update"}
         </button>
         <Link
           className="bg-green-600 text-white text-lg font-semi-bold text-center p-3 rounded-lg hover:opacity-90 transition duration-300"
-          to="/create-listing">
+          to="/create-listing"
+        >
           Create Listing
         </Link>
       </form>

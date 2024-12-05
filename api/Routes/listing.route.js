@@ -7,7 +7,7 @@ const {
   getListing,
   getListings,
 } = require("../Controller/listing.controller.js");
-const { verifyToken } = require("../Utils/verifyUser.js");
+const  verifyToken  = require("../Middleware/verifyToken.js");
 
 const router = express.Router();
 

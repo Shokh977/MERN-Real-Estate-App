@@ -8,12 +8,11 @@ import {
 } from "firebase/storage";
 import { app } from "../firebase";
 import { FiLoader } from "react-icons/fi";
-import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from "../Store/useAuthStore";
 
 const CreateListing = () => {
-  const currentUser = useSelector((state) => state.user.user.currentUser);
-  console.log(currentUser, 'user from listing')
+  const user = useAuthStore()
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -99,7 +98,7 @@ const CreateListing = () => {
         },
         body: JSON.stringify({
           ...formData,
-          userRef: currentUser._id
+          userRef: user.user._id
         }),
       });
       const data = await res.json();

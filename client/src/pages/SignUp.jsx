@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
+import { useAuthStore } from "../Store/useAuthStore";
 
 export default function SignUp() {
+  const { signup, loading, error } = useAuthStore();
   const [form, setForm] = useState({});
-  const [error, setError] = useState();
-  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -18,27 +19,11 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-
-      if (data.success === false) {
-        setLoading(false);
-        setError(data.message);
-        return;
-      }
-      setLoading(false);
-      setError(null);
-      navigate("/"); // Navigating to home after successful sign-up
-    } catch (error) {
-      setLoading(false);
-      setError(error.message);
+      const message = await signup(form);
+      setSuccessMessage(message);
+      setTimeout(() => navigate("/sign-in"), 2000);
+    } catch (err) {
+      console.error("Sign-up failed:", err);
     }
   };
 
@@ -75,6 +60,12 @@ export default function SignUp() {
           </button>
           <OAuth />
         </form>
+
+        {successMessage && (
+          <p className="text-green-600 text-center mt-4 bg-green-100 p-2 rounded-lg">
+            {successMessage}
+          </p>
+        )}
 
         <div className="text-center mt-6">
           <p className="text-gray-600">

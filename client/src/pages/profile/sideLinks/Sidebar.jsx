@@ -1,8 +1,8 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useAuthStore } from "../../../Store/useAuthStore";
 
 export default function Sidebar({ menu, setMenu }) {
-  const currentUser = useSelector((state) => state.user.user.currentUser);
+  const {user} = useAuthStore()
 
   const menuItems = [
     { name: "listings", label: "Listings" },
@@ -17,10 +17,10 @@ export default function Sidebar({ menu, setMenu }) {
       <div className="p-8 flex flex-col items-center">
         <img
           className="w-20 h-20 object-cover rounded-full border border-green-500"
-          src={currentUser.avatar}
+          src={user.avatar}
           alt="User Avatar"
         />
-        <p className="mt-4 text-gray-700 font-semibold">{currentUser.username}</p>
+        <p className="mt-4 text-gray-700 font-semibold">{user.username}</p>
       </div>
       <ul className="mt-4">
         {menuItems.map((item) => (
