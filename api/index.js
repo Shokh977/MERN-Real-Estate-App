@@ -21,17 +21,18 @@ mongoose
   .catch((err) => console.log(err));
 
 
-
-
-
+  const helmet = require('helmet');
+  app.use(helmet());
+  
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: 'http://localhost:5173',  
+  origin: process.env.FRONTEND_URL || 'https://sotibol.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,  
+  credentials: true,
 }));
+
 
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
@@ -49,6 +50,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(3000, () => {
+app.listen(process.env.PORT || 3000, () => {
   console.log("server is running");
 });
