@@ -2,17 +2,15 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
-dotenv.config();
 const cors = require("cors");
+const helmet = require('helmet');
 
+dotenv.config();
 
-//Routes
-const userRouter = require("./Routes/user.route");
-const authRouter = require("./Routes/auth.route");
-const listingRouter = require("./Routes/listing.route")
+// Initialize the app
+const app = express();
 
-
-// database connection
+// Database connection
 mongoose
   .connect(process.env.MONGO)
   .then(() => {
@@ -20,11 +18,8 @@ mongoose
   })
   .catch((err) => console.log(err));
 
-
-  const helmet = require('helmet');
-  app.use(helmet());
-  
-const app = express();
+// Middleware
+app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -33,23 +28,31 @@ app.use(cors({
   credentials: true,
 }));
 
+// Routes
+const userRouter = require("./Routes/user.route");
+const authRouter = require("./Routes/auth.route");
+const listingRouter = require("./Routes/listing.route");
 
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/listing", listingRouter);
 
+// Root route
+app.get('/', (req, res) => {
+  res.send('Welcome to the API');
+});
 
-
+// Error handling middleware
 app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  return res.status(statusCode).json({
-    success: false,
-    statusCode,
-    message,
+  const statusCode = err.status || 500;
+  res.status(statusCode).json({
+    message: err.message,
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("server is running");
+// Start the server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
 });
