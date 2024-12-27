@@ -22,6 +22,7 @@ mongoose
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
+
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'https://sotibol.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
