@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "api.sotibol.com",
+        target: "mern-real-estate-app-2nqr.onrender.com",
         secure: false,
       },
     },
